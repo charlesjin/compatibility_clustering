@@ -1,6 +1,25 @@
 README
 
-Code to reproduce the results for the ICLR 2023 paper "Leveraging
-Incompatibility to Defend Against Backdoor Poisoning Attacks"
+Code to reproduce the results for the ICLR 2023 paper "Incompatibility
+Clustering as a Defense Against Backdoor Poisoning Attacks"
 
 https://arxiv.org/abs/2105.03692
+
+To get started, first install requirements
+> pip install -r requirements.txt
+We used Python 3.8.1 for all experiments
+
+Next, generate the poisoned datasets
+> mkdir -p datasets
+> python -m data.cifar10_backdoor
+By default, this will generate the poisoned datasets used in the first set of
+runs. The seeds used to generate the second and third sets of runs are also
+provided in data/cifar10_backdoor.py. Our results are reported as the median of
+the 3 runs.
+
+To run our defense on a scenario
+> python -m evaluation.backdoor_tests 0 resnet32
+> python -m evaluation.backdoor_tests 23 preactresnet18
+The required (positional) arguments are
+  scenario_id   each poisoned dataset contains 24 scenarios, numbered 0-23
+  architecture  either resnet32 or preactresnet18
