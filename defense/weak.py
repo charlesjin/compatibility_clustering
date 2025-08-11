@@ -93,13 +93,7 @@ class WeakLearner(object):
             self.train(trainloader, net, optimizer, scaler, scheduler, epochs)
             losses, predicted = self.test(valloader, net, loss_fn)
 
-            active_keep = \
-                self.get_trimmed_set(
-                    it,
-                    losses, 
-                    predicted, 
-                    indices_to_keep[self.active],
-                    active_labels)
+            active_keep = self.get_trimmed_set(it, losses)
             indices_to_keep = np.copy(self.active)
             active_train = np.copy(active_keep)
 
@@ -112,7 +106,6 @@ class WeakLearner(object):
             train_keep = indices_to_keep[self.active]
             poison_class = []
             clean_class = []
-            poison_class_perc = []
             for i in range(self.num_classes):
                 mask = active_labels == i
                 _poison_class = sum(
@@ -136,7 +129,6 @@ class WeakLearner(object):
 
         poison_class = []
         clean_class = []
-        poison_class_perc = []
         for i in range(self.num_classes):
             mask = active_labels == i
             _poison_class = sum(
@@ -180,8 +172,7 @@ class WeakLearner(object):
         self.train(trainloader, net, optimizer, scaler, scheduler, epochs)
         return net
 
-    def get_trimmed_set(self, it,
-            losses, predicted, indices_to_keep, labels):
+    def get_trimmed_set(self, it, losses):
         losses = np.nan_to_num(losses, nan=np.nanmean(losses))
 
         if self.loss_m is None:
@@ -192,9 +183,6 @@ class WeakLearner(object):
 
         losses = losses * (1 - self.decay) + loss_m * self.decay
         self.loss_m = np.copy(losses)
-
-        # 1 to 0
-        alpha = max(min((self.refit_it - 2 - it) / (self.refit_it - 2), 1), 0)
 
         thresh = min(3, max(1, self.refit_it - 2 - it)) * self.data_perc
         thresh = max(0, min(1, thresh))
